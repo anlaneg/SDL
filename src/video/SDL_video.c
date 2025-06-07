@@ -628,6 +628,7 @@ bool SDL_VideoInit(const char *driver_name)
         goto pre_driver_error;
     }
     init_events = true;
+    /*初始化keyboard*/
     if (!SDL_InitKeyboard()) {
         goto pre_driver_error;
     }
@@ -648,6 +649,7 @@ bool SDL_VideoInit(const char *driver_name)
     // Select the proper video driver
     video = NULL;
     if (!driver_name) {
+    	/*没有指明驱动，选择驱动*/
         driver_name = SDL_GetHint(SDL_HINT_VIDEO_DRIVER);
     }
     if (driver_name && *driver_name != 0) {
@@ -671,14 +673,17 @@ bool SDL_VideoInit(const char *driver_name)
             driver_attempt = (driver_attempt_end) ? (driver_attempt_end + 1) : NULL;
         }
     } else {
+    	/*没有查找到video驱动，逐个尝试*/
         for (i = 0; bootstrap[i]; ++i) {
             video = bootstrap[i]->create();
             if (video) {
+            	/*创建成功*/
                 break;
             }
         }
     }
     if (!video) {
+    	/*没有创建成功video*/
         if (driver_name) {
             SDL_SetError("%s not available", driver_name);
             goto pre_driver_error;
@@ -691,7 +696,7 @@ bool SDL_VideoInit(const char *driver_name)
     pre_driver_error. */
     _this = video;
     _this->name = bootstrap[i]->name;
-    _this->thread = SDL_GetCurrentThreadID();
+    _this->thread = SDL_GetCurrentThreadID();/*取得线程id*/
 
     // Set some very sane GL defaults
     _this->gl_config.driver_loaded = 0;
@@ -700,12 +705,14 @@ bool SDL_VideoInit(const char *driver_name)
 
     // Initialize the video subsystem
     if (!_this->VideoInit(_this)) {
+    	/*初始化video失败*/
         SDL_VideoQuit();
         return false;
     }
 
     // Make sure some displays were added
     if (_this->num_displays == 0) {
+    	/*没有displays*/
         SDL_VideoQuit();
         return SDL_SetError("The video driver did not add any displays");
     }

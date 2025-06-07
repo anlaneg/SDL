@@ -34,8 +34,8 @@
 
 typedef struct
 {
-    SDL_SharedObject *lib;
-    const char *libname;
+    SDL_SharedObject *lib;/*dlopen返回的handle*/
+    const char *libname;/*模块名称*/
 } x11dynlib;
 
 #ifndef SDL_VIDEO_DRIVER_X11_DYNAMIC_XEXT
@@ -155,6 +155,7 @@ bool SDL_X11_LoadSymbols(void)
         int *thismod = NULL;
         for (i = 0; i < SDL_arraysize(x11libs); i++) {
             if (x11libs[i].libname) {
+            	/*加载so*/
                 x11libs[i].lib = SDL_LoadObject(x11libs[i].libname);
             }
         }

@@ -70,6 +70,7 @@ SDL_HashTable *SDL_CreateHashTable(int estimated_capacity, bool threadsafe, SDL_
                                    SDL_HashKeyMatchCallback keymatch,
                                    SDL_HashDestroyCallback destroy, void *userdata)
 {
+	/*取桶数目*/
     const Uint32 num_buckets = CalculateHashBucketsFromEstimate(estimated_capacity);
     SDL_HashTable *table = (SDL_HashTable *)SDL_calloc(1, sizeof(SDL_HashTable));
     if (!table) {

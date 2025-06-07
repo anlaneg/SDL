@@ -510,9 +510,9 @@ struct SDL_VideoDevice
 
 typedef struct VideoBootStrap
 {
-    const char *name;
-    const char *desc;
-    SDL_VideoDevice *(*create)(void);
+    const char *name;/*驱动名称*/
+    const char *desc;/*驱动描述信息*/
+    SDL_VideoDevice *(*create)(void);/*创建video设备*/
     bool (*ShowMessageBox)(const SDL_MessageBoxData *messageboxdata, int *buttonID);  // can be done without initializing backend!
     bool is_preferred;
 } VideoBootStrap;

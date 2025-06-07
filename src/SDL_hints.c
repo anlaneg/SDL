@@ -317,8 +317,10 @@ bool SDL_GetHintBoolean(const char *name, bool default_value)
 bool SDL_AddHintCallback(const char *name, SDL_HintCallback callback, void *userdata)
 {
     if (!name || !*name) {
+    	/*必须提供name*/
         return SDL_InvalidParamError("name");
     } else if (!callback) {
+    	/*必须指供callback*/
         return SDL_InvalidParamError("callback");
     }
 
@@ -327,6 +329,7 @@ bool SDL_AddHintCallback(const char *name, SDL_HintCallback callback, void *user
         return false;
     }
 
+    /*申请entry*/
     SDL_HintWatch *entry = (SDL_HintWatch *)SDL_malloc(sizeof(*entry));
     if (!entry) {
         return false;

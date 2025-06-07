@@ -214,6 +214,10 @@ static void SDL_InitDynamicAPI(void);
     typedef rc (SDLCALL *SDL_DYNAPIFN_##fn) params;\
     static rc SDLCALL fn##_DEFAULT params;         \
     extern rc SDLCALL fn##_REAL params;
+/*依据上面的定义，此处展开共产生：
+ * 1。针对每一个函数原型，定义此函数指针类型SDL_DYNAPIFN_##fn
+ * 2. 声名此函数原型的一个_DEFAULT函数
+ * 3。声明此函数原型的一个_REAL函数*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 
@@ -221,6 +225,8 @@ static void SDL_InitDynamicAPI(void);
 typedef struct
 {
 #define SDL_DYNAPI_PROC(rc, fn, params, args, ret) SDL_DYNAPIFN_##fn fn;
+	/*依据上面定义，此处展开共产生：
+	 * 1。 针对每一个函数的指定类型，定义一个名称为fn的成员，用于后续指向api*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 } SDL_DYNAPI_jump_table;
@@ -228,6 +234,7 @@ typedef struct
 // The actual jump table.
 static SDL_DYNAPI_jump_table jump_table = {
 #define SDL_DYNAPI_PROC(rc, fn, params, args, ret) fn##_DEFAULT,
+		/*利用_DEFAULT函数初始化jump_table*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 };
@@ -236,10 +243,11 @@ static SDL_DYNAPI_jump_table jump_table = {
 #define SDL_DYNAPI_PROC(rc, fn, params, args, ret) \
     static rc SDLCALL fn##_DEFAULT params          \
     {                                              \
-        SDL_InitDynamicAPI();                      \
+        SDL_InitDynamicAPI();/*先尝试初始化jump_table*/\
         ret jump_table.fn args;                    \
     }
 #define SDL_DYNAPI_PROC_NO_VARARGS 1
+/*跳过VA_ARGS类函数，生成_DEFAULT函数的实现，均实现为调jum_table.fn（会先初始化）*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 #undef SDL_DYNAPI_PROC_NO_VARARGS
@@ -252,6 +260,7 @@ SDL_DYNAPI_VARARGS(static, _DEFAULT, SDL_InitDynamicAPI())
         ret jump_table.fn args;                    \
     }
 #define SDL_DYNAPI_PROC_NO_VARARGS 1
+/*跳过VA_ARGS类函数，生成函数的实现，均实现为调jum_table.fn(不再初始化）*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 #undef SDL_DYNAPI_PROC_NO_VARARGS
@@ -382,6 +391,7 @@ SDL_DYNAPI_VARARGS_LOGFN_LOGSDLCALLS(Critical, CRITICAL)
         ret fn##_REAL args;                        \
     }
 #define SDL_DYNAPI_PROC_NO_VARARGS 1
+/*跳过VA_ARGS函数，生成_LOGSDLCALLS函数，输出log后，调用fn##_REAL函数*/
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
 #undef SDL_DYNAPI_PROC_NO_VARARGS
@@ -394,9 +404,11 @@ static Sint32 initialize_jumptable(Uint32 apiver, void *table, Uint32 tablesize)
     SDL_DYNAPI_jump_table *output_jump_table = (SDL_DYNAPI_jump_table *)table;
 
     if (apiver != SDL_DYNAPI_VERSION) {
+    	/*版本有误*/
         // !!! FIXME: can maybe handle older versions?
         return -1; // not compatible.
     } else if (tablesize > sizeof(jump_table)) {
+    	/*两者大小不一致，报错*/
         return -1; // newer version of SDL with functions we can't provide.
     }
 
@@ -406,6 +418,7 @@ static Sint32 initialize_jumptable(Uint32 apiver, void *table, Uint32 tablesize)
         const char *env = SDL_getenv_unsafe_REAL("SDL_DYNAPI_LOG_CALLS");
         const bool log_calls = (env && SDL_atoi_REAL(env));
         if (log_calls) {
+        	/*填充jump_table*/
 #define SDL_DYNAPI_PROC(rc, fn, params, args, ret) jump_table.fn = fn##_LOGSDLCALLS;
 #include "SDL_dynapi_procs.h"
 #undef SDL_DYNAPI_PROC
@@ -416,13 +429,17 @@ static Sint32 initialize_jumptable(Uint32 apiver, void *table, Uint32 tablesize)
         }
     }
 #else
+/*设置函数为调用_REAL后缀的函数*/
 #define SDL_DYNAPI_PROC(rc, fn, params, args, ret) jump_table.fn = fn##_REAL;
+/*填充jump_table中对应的回调*/
 #include "SDL_dynapi_procs.h"
+/*取消此定义*/
 #undef SDL_DYNAPI_PROC
 #endif
 
     // Then the external table...
     if (output_jump_table != &jump_table) {
+    	/*上面我们填充的是jump_table,但用户传入的并不是jump_table,复制一份给output_jump_table*/
         jump_table.SDL_memcpy(output_jump_table, &jump_table, tablesize);
     }
 
@@ -465,10 +482,11 @@ static SDL_INLINE void *get_sdlapi_entry(const char *fname, const char *sym)
 #include <dlfcn.h>
 static SDL_INLINE void *get_sdlapi_entry(const char *fname, const char *sym)
 {
+	/*打开filename对应的so*/
     void *lib = dlopen(fname, RTLD_NOW | RTLD_LOCAL);
     void *result = NULL;
     if (lib) {
-        result = dlsym(lib, sym);
+        result = dlsym(lib, sym);/*获取sym对应的指针*/
         if (!result) {
             dlclose(lib);
         }
@@ -507,6 +525,7 @@ extern SDL_NORETURN void SDL_ExitProcess(int exitcode);
 }
 #endif
 
+/*多种方式初始化jump_table*/
 static void SDL_InitDynamicAPILocked(void)
 {
     // this can't use SDL_getenv_unsafe_REAL, because it might allocate memory before the app can set their allocator.
@@ -525,21 +544,24 @@ static void SDL_InitDynamicAPILocked(void)
     if (libname) {
         while (*libname && !entry) {
             // This is evil, but we're not making any permanent changes...
-            char *ptr = (char *)libname;
+            char *ptr = (char *)libname;/*按逗号分隔的一组so文件列表，返回找到的第一个SDL_DYNAPI_entry*/
             while (true) {
                 char ch = *ptr;
                 if ((ch == ',') || (ch == '\0')) {
                     *ptr = '\0';
+                    /*自so中取SDL_DYNAPI_entry符号*/
                     entry = (SDL_DYNAPI_ENTRYFN)get_sdlapi_entry(libname, "SDL_DYNAPI_entry");
                     *ptr = ch;
                     libname = (ch == '\0') ? ptr : (ptr + 1);
                     break;
                 } else {
+                	/*没有遇到','或者'\0',继续向前跳*/
                     ptr++;
                 }
             }
         }
         if (!entry) {
+        	/*列表遍历完成后，仍没有找到SDL_DYNAPI_entry*/
             dynapi_warn("Couldn't load an overriding SDL library. Please fix or remove the " SDL_DYNAMIC_API_ENVVAR " environment variable. Using the default SDL.");
             // Just fill in the function pointers from this library, later.
         }
@@ -547,6 +569,7 @@ static void SDL_InitDynamicAPILocked(void)
 
     if (entry) {
         if (entry(SDL_DYNAPI_VERSION, &jump_table, sizeof(jump_table)) < 0) {
+        	/*初始化jump_table失败*/
             dynapi_warn("Couldn't override SDL library. Using a newer SDL build might help. Please fix or remove the " SDL_DYNAMIC_API_ENVVAR " environment variable. Using the default SDL.");
             // Just fill in the function pointers from this library, later.
         } else {
@@ -556,6 +579,7 @@ static void SDL_InitDynamicAPILocked(void)
 
     // Just fill in the function pointers from this library.
     if (use_internal) {
+    	/*没有查找到entry,使用内部的函数初始化jump_table*/
         if (initialize_jumptable(SDL_DYNAPI_VERSION, &jump_table, sizeof(jump_table)) < 0) {
             // Now we're screwed. Should definitely abort now.
             dynapi_warn("Failed to initialize internal SDL dynapi. As this would otherwise crash, we have to abort now.");
@@ -588,6 +612,7 @@ static void SDL_InitDynamicAPI(void)
     SDL_LockSpinlock_REAL(&lock);
 
     if (!already_initialized) {
+    	/*如果未初始化，则初始化*/
         SDL_InitDynamicAPILocked();
         already_initialized = true;
     }

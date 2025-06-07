@@ -56,6 +56,7 @@
 
             int SDL_main(int argc, char **argv)
             {
+            	/*实现SDL_main*/
                 return SDL_EnterAppMainCallbacks(argc, argv, SDL_AppInit, SDL_AppIterate, SDL_AppEvent, SDL_AppQuit);
             }
 
@@ -134,7 +135,8 @@
         #else /* platforms that use a standard main() and just call SDL_RunApp(), like iOS and 3DS */
             int main(int argc, char *argv[])
             {
-                return SDL_RunApp(argc, argv, SDL_main, NULL);
+            	/*应用入口*/
+                return SDL_RunApp(argc, argv, SDL_main/*真实的入口,见include/SDL3/SDL_main_impl.h*/, NULL);
             }
 
             /* end of impls for standard-conforming platforms */

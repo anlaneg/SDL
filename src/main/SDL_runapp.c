@@ -28,7 +28,7 @@ int SDL_RunApp(int argc, char* argv[], SDL_main_func mainFunction, void * reserv
 {
     (void)reserved;
 
-    if(!argv)
+    if(!argv/*无参数时，提供假的参数*/)
     {
         // make sure argv isn't NULL, in case some user code doesn't like that
         static char dummyargv0[] = { 'S', 'D', 'L', '_', 'a', 'p', 'p', '\0' };
@@ -37,6 +37,7 @@ int SDL_RunApp(int argc, char* argv[], SDL_main_func mainFunction, void * reserv
         argv = argvdummy;
     }
 
+    /*触发真正的入口*/
     return mainFunction(argc, argv);
 }
 

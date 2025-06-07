@@ -137,7 +137,7 @@ static bool SDL_ValidMetadataProperty(const char *name)
         SDL_strcmp(name, SDL_PROP_APP_METADATA_COPYRIGHT_STRING) == 0 ||
         SDL_strcmp(name, SDL_PROP_APP_METADATA_URL_STRING) == 0 ||
         SDL_strcmp(name, SDL_PROP_APP_METADATA_TYPE_STRING) == 0) {
-        return true;
+        return true;/*仅以上属性为metadata*/
     }
     return false;
 }
@@ -327,6 +327,7 @@ bool SDL_InitSubSystem(SDL_InitFlags flags)
 
     // Initialize the event subsystem
     if (flags & SDL_INIT_EVENTS) {
+    	/*初始化events子系统*/
         if (SDL_ShouldInitSubsystem(SDL_INIT_EVENTS)) {
             SDL_IncrementSubsystemRefCount(SDL_INIT_EVENTS);
             if (!SDL_InitEvents()) {
@@ -341,6 +342,7 @@ bool SDL_InitSubSystem(SDL_InitFlags flags)
 
     // Initialize the video subsystem
     if (flags & SDL_INIT_VIDEO) {
+    	/*初始化video系统*/
 #ifndef SDL_VIDEO_DISABLED
         if (SDL_ShouldInitSubsystem(SDL_INIT_VIDEO)) {
             // video implies events

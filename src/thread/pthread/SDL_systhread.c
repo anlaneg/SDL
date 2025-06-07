@@ -180,7 +180,7 @@ void SDL_SYS_SetupThread(const char *name)
 
 SDL_ThreadID SDL_GetCurrentThreadID(void)
 {
-    return (SDL_ThreadID)pthread_self();
+    return (SDL_ThreadID)pthread_self();/*取得线程id*/
 }
 
 bool SDL_SYS_SetThreadPriority(SDL_ThreadPriority priority)

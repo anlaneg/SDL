@@ -65,6 +65,7 @@
 #include "dynapi/SDL_dynapi.h"
 
 #if SDL_DYNAMIC_API
+/*修改api名称，增加_REAL后缀*/
 #include "dynapi/SDL_dynapi_overrides.h"
 /* force SDL_DECLSPEC off...it's all internal symbols now.
    These will have actual #defines during SDL_dynapi.c only */

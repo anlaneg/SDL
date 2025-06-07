@@ -44,6 +44,7 @@ SDL_SharedObject *SDL_LoadObject(const char *sofile)
     }
 #endif
 
+    /*加载so文件*/
     handle = dlopen(sofile, RTLD_NOW | RTLD_LOCAL);
     loaderror = dlerror();
     if (!handle) {
