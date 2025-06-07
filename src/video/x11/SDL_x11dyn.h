@@ -88,12 +88,14 @@ extern bool SDL_X11_LoadSymbols(void);
 extern void SDL_X11_UnloadSymbols(void);
 
 // Declare all the function pointers and wrappers...
+/*定义xll的函数指针,声明XLL函数指针变量*/
 #define SDL_X11_SYM(rc, fn, params) \
     typedef rc(*SDL_DYNX11FN_##fn) params;     \
     extern SDL_DYNX11FN_##fn X11_##fn;
 #include "SDL_x11sym.h"
 
 /* These SDL_X11_HAVE_* flags are here whether you have dynamic X11 or not. */
+/*声明XLL模块是否存在变量*/
 #define SDL_X11_MODULE(modname) extern int SDL_X11_HAVE_##modname;
 #include "SDL_x11sym.h"
 

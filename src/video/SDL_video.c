@@ -2345,12 +2345,17 @@ static SDL_WindowFlags SDL_GetWindowFlagProperties(SDL_PropertiesID props)
 SDL_Window *SDL_CreateWindowWithProperties(SDL_PropertiesID props)
 {
     SDL_Window *window;
+    /*取窗口标题*/
     const char *title = SDL_GetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, NULL);
+    /*取窗口位置*/
     int x = (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_UNDEFINED);
     int y = (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_UNDEFINED);
+    /*取窗口宽高*/
     int w = (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 0);
     int h = (int)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 0);
+    /*取父窗口指针*/
     SDL_Window *parent = (SDL_Window *)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_CREATE_PARENT_POINTER, NULL);
+    /*取窗口标记*/
     SDL_WindowFlags flags = SDL_GetWindowFlagProperties(props);
     SDL_WindowFlags type_flags, graphics_flags;
     bool undefined_x = false;
@@ -2360,6 +2365,7 @@ SDL_Window *SDL_CreateWindowWithProperties(SDL_PropertiesID props)
     if (!_this) {
         // Initialize the video system if needed
         if (!SDL_Init(SDL_INIT_VIDEO)) {
+        	/*初始化VIDEO设备失败*/
             return NULL;
         }
 
@@ -2547,7 +2553,7 @@ SDL_Window *SDL_CreateWindowWithProperties(SDL_PropertiesID props)
 #endif
 
     if (title) {
-        SDL_SetWindowTitle(window, title);
+        SDL_SetWindowTitle(window, title);/*设置标题*/
     }
     SDL_FinishWindowCreation(window, flags);
 
@@ -2568,11 +2574,16 @@ SDL_Window *SDL_CreateWindow(const char *title, int w, int h, SDL_WindowFlags fl
     SDL_Window *window;
     SDL_PropertiesID props = SDL_CreateProperties();
     if (title && *title) {
+    	/*添加title*/
         SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, title);
     }
+    /*添加WIDTH*/
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, w);
+    /*添加HEIGHT*/
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, h);
+    /*添加FLAGS*/
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, flags);
+    /*按属性创建WINDOW*/
     window = SDL_CreateWindowWithProperties(props);
     SDL_DestroyProperties(props);
     return window;

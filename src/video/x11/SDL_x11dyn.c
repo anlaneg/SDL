@@ -71,15 +71,17 @@ static x11dynlib x11libs[] = {
     { NULL, SDL_VIDEO_DRIVER_X11_DYNAMIC_XTEST }
 };
 
+/*在动态库中查找函数名称*/
 static void *X11_GetSym(const char *fnname, int *pHasModule)
 {
     int i;
     void *fn = NULL;
     for (i = 0; i < SDL_arraysize(x11libs); i++) {
         if (x11libs[i].lib) {
+        	/*此SO已被加载,自此SO中尝试此FUNCTION*/
             fn = SDL_LoadFunction(x11libs[i].lib, fnname);
             if (fn) {
-                break;
+                break;/*已找到不再尝试*/
             }
         }
     }
@@ -92,6 +94,7 @@ static void *X11_GetSym(const char *fnname, int *pHasModule)
 #endif
 
     if (!fn) {
+    	/*标记此模块不存在*/
         *pHasModule = 0; // kill this module.
     }
 
@@ -100,6 +103,7 @@ static void *X11_GetSym(const char *fnname, int *pHasModule)
 
 #endif // SDL_VIDEO_DRIVER_X11_DYNAMIC
 
+/*定义函数指针*/
 // Define all the function pointers and wrappers...
 #define SDL_X11_SYM(rc, fn, params) SDL_DYNX11FN_##fn X11_##fn = NULL;
 #include "SDL_x11sym.h"
@@ -155,15 +159,18 @@ bool SDL_X11_LoadSymbols(void)
         int *thismod = NULL;
         for (i = 0; i < SDL_arraysize(x11libs); i++) {
             if (x11libs[i].libname) {
-            	/*加载so*/
+            	/*如果设置了LIB名称,则加载so*/
                 x11libs[i].lib = SDL_LoadObject(x11libs[i].libname);
             }
         }
 
+        /*初始化此模块存在*/
 #define SDL_X11_MODULE(modname) SDL_X11_HAVE_##modname = 1; // default yes
 #include "SDL_x11sym.h"
 
+        /*切换thismod*/
 #define SDL_X11_MODULE(modname)     thismod = &SDL_X11_HAVE_##modname;
+        /*设置FN对应的符号地址,如FN对应的符号不存在,则认为fn所在模块不存在*/
 #define SDL_X11_SYM(rc, fn, params) X11_##fn = (SDL_DYNX11FN_##fn)X11_GetSym(#fn, thismod);
 #include "SDL_x11sym.h"
 

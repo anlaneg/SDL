@@ -883,7 +883,8 @@ static bool SDL_RendererEventWatch(void *userdata, SDL_Event *event)
     return true;
 }
 
-bool SDL_CreateWindowAndRenderer(const char *title, int width, int height, SDL_WindowFlags window_flags, SDL_Window **window, SDL_Renderer **renderer)
+/*创建窗口*/
+bool SDL_CreateWindowAndRenderer(const char *title/*窗口标题*/, int width, int height, SDL_WindowFlags window_flags, SDL_Window **window, SDL_Renderer **renderer)
 {
     bool hidden = (window_flags & SDL_WINDOW_HIDDEN) != 0;
 
@@ -896,7 +897,7 @@ bool SDL_CreateWindowAndRenderer(const char *title, int width, int height, SDL_W
     }
 
     // Hide the window so if the renderer recreates it, we don't get a visual flash on screen
-    window_flags |= SDL_WINDOW_HIDDEN;
+    window_flags |= SDL_WINDOW_HIDDEN;/*先隐藏*/
     *window = SDL_CreateWindow(title, width, height, window_flags);
     if (!*window) {
         *renderer = NULL;

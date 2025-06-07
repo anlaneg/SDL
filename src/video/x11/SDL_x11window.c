@@ -941,7 +941,7 @@ void X11_SetWindowTitle(SDL_VideoDevice *_this, SDL_Window *window)
     Display *display = data->videodata->display;
     char *title = window->title ? window->title : "";
 
-    SDL_X11_SetWindowTitle(display, xwindow, title);
+    SDL_X11_SetWindowTitle(display, xwindow, title/*要设置的标题*/);
 }
 
 static bool caught_x11_error = false;
